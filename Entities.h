@@ -9,6 +9,7 @@ struct Player {
     float x, y;
     int score;
     int bombs;
+    int powerLevel;
     bool alive;
     int width, height;
 };
@@ -22,9 +23,17 @@ struct Bullet {
 struct Enemy {
     float x, y;
     bool active;
-    bool transferred; // true if this enemy has already been transferred (received from opponent)
+    bool transferred;
+    bool isHighLevel;
+    int hp;
     int width, height;
-    int type; // Can define different enemy types if needed
+    int type;
+};
+
+struct PowerUp {
+    float x, y;
+    bool active;
+    int width, height;
 };
 
 #endif

@@ -8,29 +8,49 @@
 #endif
 
 void updatePlayer(Player &p) {
-    int joyX = analogRead(JOY_X_PIN);
-    int joyY = analogRead(JOY_Y_PIN);
+    static int lastA = LOW;
+    int currentA = digitalRead(ENC_A_PIN);
 
-    // Assuming joystick center is around 512
-    if (joyX < 400) p.x -= PLAYER_SPEED;
-    if (joyX > 600) p.x += PLAYER_SPEED;
-    if (joyY < 400) p.y -= PLAYER_SPEED;
-    if (joyY > 600) p.y += PLAYER_SPEED;
+    if (currentA != lastA && currentA == HIGH) {
+        if (digitalRead(ENC_B_PIN) != currentA) {
+            p.x += 10; // Adjust sensitivity
+        } else {
+            p.x -= 10;
+        }
+    }
+    lastA = currentA;
+
+    // Fixed Y
+    p.y = PLAYER_Y;
 
     // Constrain to screen
     if (p.x < 0) p.x = 0;
     if (p.x > SCREEN_WIDTH - p.width) p.x = SCREEN_WIDTH - p.width;
-    if (p.y < 0) p.y = 0;
-    if (p.y > SCREEN_HEIGHT - p.height) p.y = SCREEN_HEIGHT - p.height;
 }
 
 void fireBullet(Player &p, Bullet bullets[]) {
-    for (int i = 0; i < MAX_PLAYER_BULLETS; i++) {
-        if (!bullets[i].active) {
-            bullets[i].x = p.x + p.width / 2 - bullets[i].width / 2;
-            bullets[i].y = p.y;
-            bullets[i].active = true;
-            break;
+    int count = 1 + p.powerLevel;
+    if (count > 3) count = 3; // Limit spread
+
+    for (int i = 0; i < count; i++) {
+        for (int j = 0; j < MAX_PLAYER_BULLETS; j++) {
+            if (!bullets[j].active) {
+                bullets[j].width = 4;
+                bullets[j].height = 10;
+                bullets[j].active = true;
+                bullets[j].y = p.y;
+
+                if (count == 1) {
+                    bullets[j].x = p.x + p.width / 2 - bullets[j].width / 2;
+                } else if (count == 2) {
+                    bullets[j].x = (i == 0) ? p.x : p.x + p.width - bullets[j].width;
+                } else {
+                    if (i == 0) bullets[j].x = p.x;
+                    else if (i == 1) bullets[j].x = p.x + p.width / 2 - bullets[j].width / 2;
+                    else bullets[j].x = p.x + p.width - bullets[j].width;
+                }
+                break;
+            }
         }
     }
 }
@@ -55,6 +75,15 @@ void spawnEnemy(Enemy enemies[], float x, bool transferred) {
             enemies[i].transferred = transferred;
             enemies[i].width = 20;
             enemies[i].height = 20;
+
+            // Randomly spawn high level if not transferred
+            if (!transferred && random(0, 10) > 7) {
+                enemies[i].isHighLevel = true;
+                enemies[i].hp = 3;
+            } else {
+                enemies[i].isHighLevel = false;
+                enemies[i].hp = 1;
+            }
             break;
         }
     }

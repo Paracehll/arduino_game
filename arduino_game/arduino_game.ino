@@ -9,6 +9,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
 
 Player player;
 Bullet bullets[MAX_PLAYER_BULLETS];
+EnemyBullet enemyBullets[MAX_ENEMY_BULLETS];
 Enemy enemies[MAX_ENEMIES];
 PowerUp powerups[MAX_POWERUPS];
 
@@ -25,13 +26,14 @@ void setup() {
     player = {SCREEN_WIDTH / 2 - 10, PLAYER_Y, 0, 3, INITIAL_LIVES, 0, true, 20, 20};
 
     for (int i = 0; i < MAX_PLAYER_BULLETS; i++) bullets[i].active = false;
+    for (int i = 0; i < MAX_ENEMY_BULLETS; i++) enemyBullets[i].active = false;
     for (int i = 0; i < MAX_ENEMIES; i++) enemies[i].active = false;
     for (int i = 0; i < MAX_POWERUPS; i++) powerups[i].active = false;
 
     pinMode(BUTTON_SHOOT_PIN, INPUT_PULLUP);
     pinMode(BUTTON_BOMB_PIN, INPUT_PULLUP);
-    pinMode(ENC_A_PIN, INPUT_PULLUP);
-    pinMode(ENC_B_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_LEFT_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_RIGHT_PIN, INPUT_PULLUP);
 }
 
 void spawnPowerUp(float x, float y) {
@@ -97,6 +99,24 @@ void handleCollisions() {
         }
     }
 
+    // Check Enemy Bullet Collisions
+    if (!invulnerable) {
+        for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
+            if (enemyBullets[i].active && checkCollision(player.x, player.y, player.width, player.height,
+                                                        enemyBullets[i].x, enemyBullets[i].y, enemyBullets[i].width, enemyBullets[i].height)) {
+                enemyBullets[i].active = false;
+                player.lives--;
+                if (player.lives <= 0) {
+                    player.alive = false;
+                } else {
+                    invulnEndTime = millis() + 2000;
+                    for(int k=0; k<MAX_ENEMIES; k++) enemies[k].active = false;
+                }
+                break;
+            }
+        }
+    }
+
     for (int i = 0; i < MAX_POWERUPS; i++) {
         if (powerups[i].active && checkCollision(player.x, player.y, player.width, player.height,
                                                  powerups[i].x, powerups[i].y, powerups[i].width, powerups[i].height)) {
@@ -133,6 +153,7 @@ void draw() {
     static float oldPlayerX = -1, oldPlayerY = -1;
     static bool oldPlayerAlive = false;
     static Bullet oldBullets[MAX_PLAYER_BULLETS];
+    static EnemyBullet oldEnemyBullets[MAX_ENEMY_BULLETS];
     static Enemy oldEnemies[MAX_ENEMIES];
     static PowerUp oldPowerUps[MAX_POWERUPS];
 
@@ -158,6 +179,19 @@ void draw() {
                 tft.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height, ILI9341_YELLOW);
             }
             oldBullets[i] = bullets[i];
+        }
+    }
+
+    // Enemy Bullets Rendering
+    for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
+        if (enemyBullets[i].x != oldEnemyBullets[i].x || enemyBullets[i].y != oldEnemyBullets[i].y || enemyBullets[i].active != oldEnemyBullets[i].active) {
+            if (oldEnemyBullets[i].active) {
+                tft.fillRect(oldEnemyBullets[i].x, oldEnemyBullets[i].y, oldEnemyBullets[i].width, oldEnemyBullets[i].height, ILI9341_BLACK);
+            }
+            if (enemyBullets[i].active) {
+                tft.fillRect(enemyBullets[i].x, enemyBullets[i].y, enemyBullets[i].width, enemyBullets[i].height, ILI9341_RED);
+            }
+            oldEnemyBullets[i] = enemyBullets[i];
         }
     }
 
@@ -203,12 +237,14 @@ void loop() {
 
     if (digitalRead(BUTTON_BOMB_PIN) == LOW && player.bombs > 0) {
         for (int i = 0; i < MAX_ENEMIES; i++) enemies[i].active = false;
+        for (int i = 0; i < MAX_ENEMY_BULLETS; i++) enemyBullets[i].active = false;
         player.bombs--;
         delay(200);
     }
 
     updateBullets(bullets);
-    updateEnemies(enemies);
+    updateEnemyBullets(enemyBullets);
+    updateEnemies(enemies, player, enemyBullets);
     updatePowerUps();
     handleCollisions();
 

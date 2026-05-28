@@ -3,22 +3,18 @@
 
 #include "Config.h"
 #include "Entities.h"
+#include <math.h>
 #ifdef ARDUINO
 #include <Arduino.h>
 #endif
 
 void updatePlayer(Player &p) {
-    static int lastA = LOW;
-    int currentA = digitalRead(ENC_A_PIN);
-
-    if (currentA != lastA && currentA == HIGH) {
-        if (digitalRead(ENC_B_PIN) != currentA) {
-            p.x += 10; // Adjust sensitivity
-        } else {
-            p.x -= 10;
-        }
+    if (digitalRead(BUTTON_LEFT_PIN) == LOW) {
+        p.x -= PLAYER_SPEED;
     }
-    lastA = currentA;
+    if (digitalRead(BUTTON_RIGHT_PIN) == LOW) {
+        p.x += PLAYER_SPEED;
+    }
 
     // Fixed Y
     p.y = PLAYER_Y;
@@ -66,6 +62,69 @@ void updateBullets(Bullet bullets[]) {
     }
 }
 
+void fireEnemyBullet(Enemy &e, Player &p, EnemyBullet enemyBullets[]) {
+    if (millis() - e.lastFireTime < 1000) return; // Fire every 1 second
+    e.lastFireTime = millis();
+
+    switch (e.pattern) {
+        case 0: { // Aimed at player
+            float dx = (p.x + p.width / 2) - (e.x + e.width / 2);
+            float dy = (p.y + p.height / 2) - (e.y + e.height / 2);
+            float dist = sqrt(dx * dx + dy * dy);
+            if (dist == 0) dist = 1;
+
+            for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
+                if (!enemyBullets[i].active) {
+                    enemyBullets[i].active = true;
+                    enemyBullets[i].x = e.x + e.width / 2;
+                    enemyBullets[i].y = e.y + e.height / 2;
+                    enemyBullets[i].vx = (dx / dist) * ENEMY_BULLET_SPEED;
+                    enemyBullets[i].vy = (dy / dist) * ENEMY_BULLET_SPEED;
+                    enemyBullets[i].width = 4;
+                    enemyBullets[i].height = 4;
+                    break;
+                }
+            }
+            break;
+        }
+        case 1: { // 3-way Spread
+            for (int ang = -1; ang <= 1; ang++) {
+                for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
+                    if (!enemyBullets[i].active) {
+                        enemyBullets[i].active = true;
+                        enemyBullets[i].x = e.x + e.width / 2;
+                        enemyBullets[i].y = e.y + e.height / 2;
+                        enemyBullets[i].vx = ang * 1.0;
+                        enemyBullets[i].vy = ENEMY_BULLET_SPEED;
+                        enemyBullets[i].width = 4;
+                        enemyBullets[i].height = 4;
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+        default: { // 8-way Circular
+            for (int i = 0; i < 8; i++) {
+                float angle = i * (PI / 4);
+                for (int j = 0; j < MAX_ENEMY_BULLETS; j++) {
+                    if (!enemyBullets[j].active) {
+                        enemyBullets[j].active = true;
+                        enemyBullets[j].x = e.x + e.width / 2;
+                        enemyBullets[j].y = e.y + e.height / 2;
+                        enemyBullets[j].vx = cos(angle) * ENEMY_BULLET_SPEED;
+                        enemyBullets[j].vy = sin(angle) * ENEMY_BULLET_SPEED;
+                        enemyBullets[j].width = 4;
+                        enemyBullets[j].height = 4;
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+    }
+}
+
 void spawnEnemy(Enemy enemies[], float x, bool transferred) {
     for (int i = 0; i < MAX_ENEMIES; i++) {
         if (!enemies[i].active) {
@@ -84,17 +143,56 @@ void spawnEnemy(Enemy enemies[], float x, bool transferred) {
                 enemies[i].isHighLevel = false;
                 enemies[i].hp = ENEMY_DEFAULT_HP;
             }
+
+            // New state machine initialization
+            enemies[i].state = STATE_NORMAL;
+            enemies[i].stop_delay = random(1000, 3000);
+            enemies[i].stop_timer = random(2000, 4000);
+            enemies[i].stateStartTime = millis();
+            enemies[i].lastFireTime = 0;
+            enemies[i].pattern = random(0, 3);
             break;
         }
     }
 }
 
-void updateEnemies(Enemy enemies[]) {
+void updateEnemies(Enemy enemies[], Player &p, EnemyBullet enemyBullets[]) {
     for (int i = 0; i < MAX_ENEMIES; i++) {
         if (enemies[i].active) {
-            enemies[i].y += ENEMY_SPEED;
+            unsigned long elapsed = millis() - enemies[i].stateStartTime;
+
+            if (enemies[i].state == STATE_NORMAL) {
+                enemies[i].y += ENEMY_SPEED;
+                if (elapsed > enemies[i].stop_delay) {
+                    enemies[i].state = STATE_STOP;
+                    enemies[i].stateStartTime = millis();
+                }
+            } else if (enemies[i].state == STATE_STOP) {
+                enemies[i].y += ENEMY_STOP_SPEED;
+                fireEnemyBullet(enemies[i], p, enemyBullets);
+                if (elapsed > enemies[i].stop_timer) {
+                    enemies[i].state = STATE_NORMAL;
+                    enemies[i].stateStartTime = millis();
+                    // Optional: reset stop timers if we want it to stop again
+                    enemies[i].stop_delay = 10000; // Only stop once for now or large delay
+                }
+            }
+
             if (enemies[i].y > SCREEN_HEIGHT) {
                 enemies[i].active = false;
+            }
+        }
+    }
+}
+
+void updateEnemyBullets(EnemyBullet enemyBullets[]) {
+    for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
+        if (enemyBullets[i].active) {
+            enemyBullets[i].x += enemyBullets[i].vx;
+            enemyBullets[i].y += enemyBullets[i].vy;
+            if (enemyBullets[i].y < 0 || enemyBullets[i].y > SCREEN_HEIGHT ||
+                enemyBullets[i].x < 0 || enemyBullets[i].x > SCREEN_WIDTH) {
+                enemyBullets[i].active = false;
             }
         }
     }

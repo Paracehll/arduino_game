@@ -10,11 +10,11 @@
 #define TFT_DC    9
 #define TFT_RST   8
 
-// Optical Encoder Pins (PEC16 16 mm Incremental Encoder)
-#define ENC_A_PIN 4
-#define ENC_B_PIN 5
+// Button Pins for Movement
+#define BUTTON_LEFT_PIN  4
+#define BUTTON_RIGHT_PIN 5
 
-// Joystick Pins (X only now for optional fallback or reference, but we use Encoder)
+// Joystick Pins (X only now for optional fallback or reference)
 #define JOY_X_PIN A0
 
 // Button Pins
@@ -23,13 +23,20 @@
 
 // Game Constants
 #define MAX_PLAYER_BULLETS 20
+#define MAX_ENEMY_BULLETS  30
 #define MAX_ENEMIES        15
 #define MAX_POWERUPS       5
 #define PLAYER_SPEED       4
 #define BULLET_SPEED       6
 #define ENEMY_SPEED        2
+#define ENEMY_STOP_SPEED   0.5
+#define ENEMY_BULLET_SPEED 3
 #define PLAYER_Y           280 // Fixed Y position
 #define INITIAL_LIVES      3
+
+// Enemy States
+#define STATE_NORMAL       0
+#define STATE_STOP         1
 
 // Combat Balancing
 #define BULLET_DAMAGE      1

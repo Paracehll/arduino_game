@@ -71,11 +71,13 @@ void handleCollisions() {
                 player.alive = 0;
             } else {
                 invulnEndTime = millis() + 2000;
-                for(int8_t k=0; k<MAX_ENEMIES; k++) enemies[k].active = 0;
+                // Clear all bullets on life loss
+                for(int8_t k=0; k<MAX_PLAYER_BULLETS; k++) bullets[k].active = 0;
+                for(int8_t k=0; k<MAX_ENEMY_BULLETS; k++) enemyBullets[k].active = 0;
             }
         }
 
-        for (int8_t j = 0; j < MAX_PLAYER_BULLETS; j++) {
+        for (int j = 0; j < MAX_PLAYER_BULLETS; j++) {
             if (bullets[j].active && checkCollision(bullets[j].x, bullets[j].y, bullets[j].width, bullets[j].height,
                                                     enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height)) {
                 bullets[j].active = 0;
@@ -108,7 +110,9 @@ void handleCollisions() {
                     player.alive = 0;
                 } else {
                     invulnEndTime = millis() + 2000;
-                    for(int8_t k=0; k<MAX_ENEMIES; k++) enemies[k].active = 0;
+                    // Clear all bullets on life loss
+                    for(int8_t k=0; k<MAX_PLAYER_BULLETS; k++) bullets[k].active = 0;
+                    for(int8_t k=0; k<MAX_ENEMY_BULLETS; k++) enemyBullets[k].active = 0;
                 }
                 break;
             }

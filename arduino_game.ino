@@ -117,37 +117,62 @@ void drawUI() {
 }
 
 void draw() {
-    static float oldPlayerX, oldPlayerY;
+    static float oldPlayerX = -1, oldPlayerY = -1;
+    static bool oldPlayerAlive = false;
     static Bullet oldBullets[MAX_PLAYER_BULLETS];
     static Enemy oldEnemies[MAX_ENEMIES];
     static PowerUp oldPowerUps[MAX_POWERUPS];
 
-    tft.fillRect(oldPlayerX, oldPlayerY, player.width, player.height, ILI9341_BLACK);
-    for(int i=0; i<MAX_PLAYER_BULLETS; i++) if(oldBullets[i].active) tft.fillRect(oldBullets[i].x, oldBullets[i].y, oldBullets[i].width, oldBullets[i].height, ILI9341_BLACK);
-    for(int i=0; i<MAX_ENEMIES; i++) if(oldEnemies[i].active) tft.fillRect(oldEnemies[i].x, oldEnemies[i].y, oldEnemies[i].width, oldEnemies[i].height, ILI9341_BLACK);
-    for(int i=0; i<MAX_POWERUPS; i++) if(oldPowerUps[i].active) tft.fillRect(oldPowerUps[i].x, oldPowerUps[i].y, oldPowerUps[i].width, oldPowerUps[i].height, ILI9341_BLACK);
-
-    if (player.alive) tft.fillRect(player.x, player.y, player.width, player.height, ILI9341_BLUE);
-
-    for (int i = 0; i < MAX_PLAYER_BULLETS; i++) {
-        if (bullets[i].active) tft.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height, ILI9341_YELLOW);
+    // Player Rendering
+    if (player.x != oldPlayerX || player.y != oldPlayerY || player.alive != oldPlayerAlive) {
+        if (oldPlayerAlive) {
+            tft.fillRect(oldPlayerX, oldPlayerY, player.width, player.height, ILI9341_BLACK);
+        }
+        if (player.alive) {
+            tft.fillRect(player.x, player.y, player.width, player.height, ILI9341_BLUE);
+        }
+        oldPlayerX = player.x; oldPlayerY = player.y; oldPlayerAlive = player.alive;
     }
 
-    for (int i = 0; i < MAX_ENEMIES; i++) {
-        if (enemies[i].active) {
-            uint16_t color = enemies[i].isHighLevel ? ILI9341_MAGENTA : (enemies[i].transferred ? ILI9341_RED : ILI9341_GREEN);
-            tft.fillRect(enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height, color);
+    // Bullets Rendering
+    for (int i = 0; i < MAX_PLAYER_BULLETS; i++) {
+        if (bullets[i].x != oldBullets[i].x || bullets[i].y != oldBullets[i].y || bullets[i].active != oldBullets[i].active) {
+            if (oldBullets[i].active) {
+                tft.fillRect(oldBullets[i].x, oldBullets[i].y, oldBullets[i].width, oldBullets[i].height, ILI9341_BLACK);
+            }
+            if (bullets[i].active) {
+                tft.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height, ILI9341_YELLOW);
+            }
+            oldBullets[i] = bullets[i];
         }
     }
 
-    for (int i = 0; i < MAX_POWERUPS; i++) {
-        if (powerups[i].active) tft.fillRect(powerups[i].x, powerups[i].y, powerups[i].width, powerups[i].height, ILI9341_CYAN);
+    // Enemies Rendering
+    for (int i = 0; i < MAX_ENEMIES; i++) {
+        if (enemies[i].x != oldEnemies[i].x || enemies[i].y != oldEnemies[i].y || enemies[i].active != oldEnemies[i].active) {
+            if (oldEnemies[i].active) {
+                tft.fillRect(oldEnemies[i].x, oldEnemies[i].y, oldEnemies[i].width, oldEnemies[i].height, ILI9341_BLACK);
+            }
+            if (enemies[i].active) {
+                uint16_t color = enemies[i].isHighLevel ? ILI9341_MAGENTA : (enemies[i].transferred ? ILI9341_RED : ILI9341_GREEN);
+                tft.fillRect(enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height, color);
+            }
+            oldEnemies[i] = enemies[i];
+        }
     }
 
-    oldPlayerX = player.x; oldPlayerY = player.y;
-    for(int i=0; i<MAX_PLAYER_BULLETS; i++) oldBullets[i] = bullets[i];
-    for(int i=0; i<MAX_ENEMIES; i++) oldEnemies[i] = enemies[i];
-    for(int i=0; i<MAX_POWERUPS; i++) oldPowerUps[i] = powerups[i];
+    // Power-ups Rendering
+    for (int i = 0; i < MAX_POWERUPS; i++) {
+        if (powerups[i].x != oldPowerUps[i].x || powerups[i].y != oldPowerUps[i].y || powerups[i].active != oldPowerUps[i].active) {
+            if (oldPowerUps[i].active) {
+                tft.fillRect(oldPowerUps[i].x, oldPowerUps[i].y, oldPowerUps[i].width, oldPowerUps[i].height, ILI9341_BLACK);
+            }
+            if (powerups[i].active) {
+                tft.fillRect(powerups[i].x, powerups[i].y, powerups[i].width, powerups[i].height, ILI9341_CYAN);
+            }
+            oldPowerUps[i] = powerups[i];
+        }
+    }
 }
 
 void loop() {

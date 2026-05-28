@@ -21,6 +21,13 @@ struct Bullet {
     int width, height;
 };
 
+struct EnemyBullet {
+    float x, y;
+    float vx, vy;
+    bool active;
+    int width, height;
+};
+
 struct Enemy {
     float x, y;
     bool active;
@@ -29,6 +36,14 @@ struct Enemy {
     int hp;
     int width, height;
     int type;
+
+    // New fields for neutral unit logic
+    int state;
+    unsigned long stop_delay;
+    unsigned long stop_timer;
+    unsigned long stateStartTime;
+    unsigned long lastFireTime;
+    int pattern;
 };
 
 struct PowerUp {

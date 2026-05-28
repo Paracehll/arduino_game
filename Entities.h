@@ -9,6 +9,7 @@ struct Player {
     float x, y;
     int score;
     int bombs;
+    int lives;
     int powerLevel;
     bool alive;
     int width, height;

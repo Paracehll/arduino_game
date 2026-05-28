@@ -14,6 +14,7 @@ PowerUp powerups[MAX_POWERUPS];
 
 unsigned long lastSpawnTime = 0;
 const unsigned long spawnInterval = 2000;
+unsigned long invulnEndTime = 0;
 
 void setup() {
     Serial.begin(9600);
@@ -21,7 +22,7 @@ void setup() {
     tft.setRotation(0);
     tft.fillScreen(ILI9341_BLACK);
 
-    player = {SCREEN_WIDTH / 2 - 10, PLAYER_Y, 0, 3, 0, true, 20, 20};
+    player = {SCREEN_WIDTH / 2 - 10, PLAYER_Y, 0, 3, INITIAL_LIVES, 0, true, 20, 20};
 
     for (int i = 0; i < MAX_PLAYER_BULLETS; i++) bullets[i].active = false;
     for (int i = 0; i < MAX_ENEMIES; i++) enemies[i].active = false;
@@ -56,12 +57,21 @@ void updatePowerUps() {
 }
 
 void handleCollisions() {
+    bool invulnerable = millis() < invulnEndTime;
+
     for (int i = 0; i < MAX_ENEMIES; i++) {
         if (!enemies[i].active) continue;
 
-        if (checkCollision(player.x, player.y, player.width, player.height,
+        if (!invulnerable && checkCollision(player.x, player.y, player.width, player.height,
                            enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height)) {
-            player.alive = false;
+            player.lives--;
+            if (player.lives <= 0) {
+                player.alive = false;
+            } else {
+                invulnEndTime = millis() + 2000; // 2 seconds invulnerability
+                // Optional: Clear enemies around player
+                for(int k=0; k<MAX_ENEMIES; k++) enemies[k].active = false;
+            }
         }
 
         for (int j = 0; j < MAX_PLAYER_BULLETS; j++) {
@@ -100,19 +110,22 @@ void drawUI() {
     static int lastScore = -1;
     static int lastBombs = -1;
     static int lastPower = -1;
+    static int lastLives = -1;
 
-    if (player.score != lastScore || player.bombs != lastBombs || player.powerLevel != lastPower) {
+    if (player.score != lastScore || player.bombs != lastBombs || player.powerLevel != lastPower || player.lives != lastLives) {
         tft.fillRect(0, 0, SCREEN_WIDTH, 20, ILI9341_BLACK);
         tft.setCursor(5, 5);
         tft.setTextColor(ILI9341_WHITE);
         tft.setTextSize(1);
-        tft.print("Score:"); tft.print(player.score);
+        tft.print("S:"); tft.print(player.score);
         tft.print(" B:"); tft.print(player.bombs);
+        tft.print(" L:"); tft.print(player.lives);
         tft.print(" P:"); tft.print(player.powerLevel);
 
         lastScore = player.score;
         lastBombs = player.bombs;
         lastPower = player.powerLevel;
+        lastLives = player.lives;
     }
 }
 
@@ -123,12 +136,13 @@ void draw() {
     static Enemy oldEnemies[MAX_ENEMIES];
     static PowerUp oldPowerUps[MAX_POWERUPS];
 
-    // Player Rendering
-    if (player.x != oldPlayerX || player.y != oldPlayerY || player.alive != oldPlayerAlive) {
-        if (oldPlayerAlive) {
-            tft.fillRect(oldPlayerX, oldPlayerY, player.width, player.height, ILI9341_BLACK);
-        }
-        if (player.alive) {
+    // Player Rendering (Blink if invulnerable)
+    bool invulnerable = millis() < invulnEndTime;
+    bool shouldDrawPlayer = player.alive && (!invulnerable || (millis() / 100 % 2 == 0));
+
+    if (player.x != oldPlayerX || player.y != oldPlayerY || player.alive != oldPlayerAlive || invulnerable) {
+        tft.fillRect(oldPlayerX, oldPlayerY, player.width, player.height, ILI9341_BLACK);
+        if (shouldDrawPlayer) {
             tft.fillRect(player.x, player.y, player.width, player.height, ILI9341_BLUE);
         }
         oldPlayerX = player.x; oldPlayerY = player.y; oldPlayerAlive = player.alive;

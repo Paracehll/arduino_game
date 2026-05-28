@@ -29,5 +29,6 @@
 #define BULLET_SPEED       6
 #define ENEMY_SPEED        2
 #define PLAYER_Y           280 // Fixed Y position
+#define INITIAL_LIVES      3
 
 #endif

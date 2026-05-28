@@ -78,7 +78,7 @@ void handleCollisions() {
             if (bullets[j].active && checkCollision(bullets[j].x, bullets[j].y, bullets[j].width, bullets[j].height,
                                                     enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height)) {
                 bullets[j].active = false;
-                enemies[i].hp--;
+                enemies[i].hp -= BULLET_DAMAGE;
 
                 if (enemies[i].hp <= 0) {
                     enemies[i].active = false;

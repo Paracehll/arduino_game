@@ -10,7 +10,7 @@
 #define TFT_DC    9
 #define TFT_RST   8
 
-// Optical Encoder Pins
+// Optical Encoder Pins (PEC16 16 mm Incremental Encoder)
 #define ENC_A_PIN 4
 #define ENC_B_PIN 5
 
@@ -30,5 +30,10 @@
 #define ENEMY_SPEED        2
 #define PLAYER_Y           280 // Fixed Y position
 #define INITIAL_LIVES      3
+
+// Combat Balancing
+#define BULLET_DAMAGE      1
+#define ENEMY_DEFAULT_HP   3  // Neutral units have higher health
+#define ENEMY_HIGH_HP      10 // High-level units have even higher health
 
 #endif

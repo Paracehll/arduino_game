@@ -79,10 +79,10 @@ void spawnEnemy(Enemy enemies[], float x, bool transferred) {
             // Randomly spawn high level if not transferred
             if (!transferred && random(0, 10) > 7) {
                 enemies[i].isHighLevel = true;
-                enemies[i].hp = 3;
+                enemies[i].hp = ENEMY_HIGH_HP;
             } else {
                 enemies[i].isHighLevel = false;
-                enemies[i].hp = 1;
+                enemies[i].hp = ENEMY_DEFAULT_HP;
             }
             break;
         }

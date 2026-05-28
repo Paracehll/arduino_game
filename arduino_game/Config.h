@@ -28,11 +28,17 @@
 #define MAX_ENEMY_BULLETS  12
 #define MAX_ENEMIES        6
 #define MAX_POWERUPS       3
-#define PLAYER_SPEED       4
-#define BULLET_SPEED       6
+
+// Player Combat Config
+#define PLAYER_SPEED         4
+#define PLAYER_FIRE_COOLDOWN 250 // ms between shots
+#define BULLET_SPEED         6   // Player bullet speed
+
+// Enemy Config
 #define ENEMY_SPEED        2
 #define ENEMY_STOP_SPEED   0.5
 #define ENEMY_BULLET_SPEED 3
+
 #define PLAYER_Y           280 // Initial Y position
 #define INITIAL_LIVES      3
 

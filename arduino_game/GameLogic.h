@@ -34,7 +34,7 @@ void updatePlayer(Player &p) {
 void fireBullet(Player &p, Bullet bullets[]) {
     static uint16_t lastPlayerFire = 0;
     uint16_t now = (uint16_t)millis();
-    if (now - lastPlayerFire < 250) return; // Automatic fire rate: 4 shots per second
+    if (now - lastPlayerFire < PLAYER_FIRE_COOLDOWN) return;
     lastPlayerFire = now;
 
     int8_t count = 1 + p.powerLevel;

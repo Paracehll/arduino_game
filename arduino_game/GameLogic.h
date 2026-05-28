@@ -15,13 +15,20 @@ void updatePlayer(Player &p) {
     if (digitalRead(BUTTON_RIGHT_PIN) == LOW) {
         p.x += PLAYER_SPEED;
     }
+    if (digitalRead(BUTTON_UP_PIN) == LOW) {
+        p.y -= PLAYER_SPEED;
+    }
+    if (digitalRead(BUTTON_DOWN_PIN) == LOW) {
+        p.y += PLAYER_SPEED;
+    }
 
-    // Fixed Y
-    p.y = PLAYER_Y;
-
-    // Constrain to screen
+    // Constrain X to screen
     if (p.x < 0) p.x = 0;
     if (p.x > SCREEN_WIDTH - p.width) p.x = SCREEN_WIDTH - p.width;
+
+    // Constrain Y to screen (allow movement in bottom 3/4 of screen)
+    if (p.y < SCREEN_HEIGHT / 4) p.y = SCREEN_HEIGHT / 4;
+    if (p.y > SCREEN_HEIGHT - p.height) p.y = SCREEN_HEIGHT - p.height;
 }
 
 void fireBullet(Player &p, Bullet bullets[]) {

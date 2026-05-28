@@ -13,6 +13,8 @@
 // Button Pins for Movement
 #define BUTTON_LEFT_PIN  4
 #define BUTTON_RIGHT_PIN 5
+#define BUTTON_UP_PIN    6
+#define BUTTON_DOWN_PIN  7
 
 // Joystick Pins (X only now for optional fallback or reference)
 #define JOY_X_PIN A0
@@ -31,7 +33,7 @@
 #define ENEMY_SPEED        2
 #define ENEMY_STOP_SPEED   0.5
 #define ENEMY_BULLET_SPEED 3
-#define PLAYER_Y           280 // Fixed Y position
+#define PLAYER_Y           280 // Initial Y position
 #define INITIAL_LIVES      3
 
 // Enemy States

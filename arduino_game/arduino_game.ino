@@ -34,6 +34,8 @@ void setup() {
     pinMode(BUTTON_BOMB_PIN, INPUT_PULLUP);
     pinMode(BUTTON_LEFT_PIN, INPUT_PULLUP);
     pinMode(BUTTON_RIGHT_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_UP_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_DOWN_PIN, INPUT_PULLUP);
 }
 
 void spawnPowerUp(float x, float y) {

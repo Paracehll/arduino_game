@@ -218,7 +218,7 @@ void loop() {
     }
 
     updatePlayer(player);
-    if (digitalRead(BUTTON_SHOOT_PIN) == LOW) fireBullet(player, bullets);
+    fireBullet(player, bullets); // Continuous fire
 
     if (digitalRead(BUTTON_BOMB_PIN) == LOW && player.bombs > 0) {
         for (int8_t i = 0; i < MAX_ENEMIES; i++) enemies[i].active = 0;

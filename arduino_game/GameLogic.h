@@ -32,6 +32,11 @@ void updatePlayer(Player &p) {
 }
 
 void fireBullet(Player &p, Bullet bullets[]) {
+    static uint16_t lastPlayerFire = 0;
+    uint16_t now = (uint16_t)millis();
+    if (now - lastPlayerFire < 250) return; // Automatic fire rate: 4 shots per second
+    lastPlayerFire = now;
+
     int8_t count = 1 + p.powerLevel;
     if (count > 3) count = 3; // Limit spread
 

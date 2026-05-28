@@ -24,7 +24,7 @@
 #define BUTTON_BOMB_PIN  3
 
 // Game Constants (Reduced for Arduino Uno RAM limits)
-#define MAX_PLAYER_BULLETS 8
+#define MAX_PLAYER_BULLETS 12 // Slightly increased for spread patterns
 #define MAX_ENEMY_BULLETS  12
 #define MAX_ENEMIES        6
 #define MAX_POWERUPS       3

@@ -37,27 +37,42 @@ void fireBullet(Player &p, Bullet bullets[]) {
     if (now - lastPlayerFire < PLAYER_FIRE_COOLDOWN) return;
     lastPlayerFire = now;
 
-    int8_t count = 1 + p.powerLevel;
-    if (count > 3) count = 3; // Limit spread
-
-    for (int8_t i = 0; i < count; i++) {
+    if (p.powerLevel == 0) { // lv1: 1 center stream
         for (int8_t j = 0; j < MAX_PLAYER_BULLETS; j++) {
             if (!bullets[j].active) {
-                bullets[j].width = 4;
-                bullets[j].height = 10;
                 bullets[j].active = 1;
+                bullets[j].width = 4; bullets[j].height = 10;
                 bullets[j].y = p.y;
-
-                if (count == 1) {
-                    bullets[j].x = p.x + p.width / 2 - bullets[j].width / 2;
-                } else if (count == 2) {
-                    bullets[j].x = (i == 0) ? p.x : p.x + p.width - bullets[j].width;
-                } else {
-                    if (i == 0) bullets[j].x = p.x;
-                    else if (i == 1) bullets[j].x = p.x + p.width / 2 - bullets[j].width / 2;
-                    else bullets[j].x = p.x + p.width - bullets[j].width;
-                }
+                bullets[j].x = p.x + p.width / 2 - bullets[j].width / 2;
+                bullets[j].vx = 0;
                 break;
+            }
+        }
+    } else if (p.powerLevel == 1) { // lv2: 2 parallel streams
+        int8_t fired = 0;
+        for (int8_t j = 0; j < MAX_PLAYER_BULLETS && fired < 2; j++) {
+            if (!bullets[j].active) {
+                bullets[j].active = 1;
+                bullets[j].width = 4; bullets[j].height = 10;
+                bullets[j].y = p.y;
+                bullets[j].vx = 0;
+                if (fired == 0) bullets[j].x = p.x + 2;
+                else bullets[j].x = p.x + p.width - bullets[j].width - 2;
+                fired++;
+            }
+        }
+    } else { // lv3 (max): 1 center stream + 2 scatter streams
+        int8_t fired = 0;
+        for (int8_t j = 0; j < MAX_PLAYER_BULLETS && fired < 3; j++) {
+            if (!bullets[j].active) {
+                bullets[j].active = 1;
+                bullets[j].width = 4; bullets[j].height = 10;
+                bullets[j].y = p.y;
+                bullets[j].x = p.x + p.width / 2 - bullets[j].width / 2;
+                if (fired == 0) bullets[j].vx = 0;
+                else if (fired == 1) bullets[j].vx = -2; // scatter left
+                else bullets[j].vx = 2; // scatter right
+                fired++;
             }
         }
     }
@@ -67,7 +82,8 @@ void updateBullets(Bullet bullets[]) {
     for (int8_t i = 0; i < MAX_PLAYER_BULLETS; i++) {
         if (bullets[i].active) {
             bullets[i].y -= BULLET_SPEED;
-            if (bullets[i].y < 0) {
+            bullets[i].x += bullets[i].vx;
+            if (bullets[i].y < 0 || bullets[i].x < 0 || bullets[i].x > SCREEN_WIDTH) {
                 bullets[i].active = 0;
             }
         }

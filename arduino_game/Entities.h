@@ -17,6 +17,7 @@ struct Player {
 
 struct Bullet {
     float x, y;
+    float vx; // Horizontal velocity for spread patterns
     uint8_t active;
     int8_t width, height;
 };
